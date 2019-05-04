@@ -1,3 +1,17 @@
 <resources>
-    <string name="app_name">tiki</string>
+    <string name="app_name">tikiTest</string>
+    <string name="fake_menu_title_1"><![CDATA[Mẹ & Bé]]></string>
+    <string name="fake_menu_title_2">Sức Khoẻ</string>
+    <string name="fake_menu_title_3">Gia Dụng</string>
+    <string name="fake_menu_title_4">Dịch Vụ Tiện Ích</string>
+    <string name="fake_submenu_title_1">Vé Máy Bay</string>
+    <string name="fake_submenu_title_2">Mua bảo hiểm\nonline</string>
+    <string name="fake_submenu_title_3">Mua thẻ điện\nthoại</string>
+    <string name="fake_submenu_title_4">Thẻ game</string>
+    <string name="fake_information_title"><![CDATA[Ưu đãi & hợp tác]]></string>
+    <string name="fake_information_desc">Các ưu đãi cho chủ thẻ ngân hàng</string>
+    <string name="fake_login_title">Đăng nhập để có trải nghiệm tốt nhất</string>
+    <string name="sign_in">đăng nhập</string>
+    <string name="sign_up">đăng ký</string>
+    <string name="fake_deal_title">Tiki deal</string>
 </resources>
