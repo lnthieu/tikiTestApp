@@ -10,8 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-
 import app.android.tiki.R;
 import app.android.tiki.database.HotSearchesFetcher;
 
@@ -21,27 +19,28 @@ import app.android.tiki.database.HotSearchesFetcher;
 
 public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private static final String TAG = "HotSearchesAdapter";
+
     private static final int VIEW_TYPE_LOADING = 0;
     private static final int VIEW_TYPE_RETRY = 1;
     private static final int VIEW_TYPE_NORMAL = 2;
 
-    private Handler uiHander;
-    private HotSearchesFetcher.HotSearchesDataObserver hotSearchesDataObserver;
+    private Handler uiHandler;
+    private HotSearchesFetcher.FetchingDataObserver hotSearchesDataObserver;
 
     public HotSearchesAdapter() {
-        uiHander = new Handler(Looper.myLooper());
-        hotSearchesDataObserver = new HotSearchesFetcher.HotSearchesDataObserver() {
+        uiHandler = new Handler(Looper.myLooper());
+        hotSearchesDataObserver = new HotSearchesFetcher.FetchingDataObserver() {
             @Override
-            public void onFetchStatusChanged(HotSearchesFetcher.STATUS status) {
-                super.onFetchStatusChanged(status);
-                uiHander.post(new Runnable() {
+            public void onStatusChanged(HotSearchesFetcher.FETCHING_STATUS status) {
+                super.onStatusChanged(status);
+                uiHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         Log.d("HotSearchesAdapter", "status changed");
                         notifyDataSetChanged();
                     }
                 });
-
             }
         };
 
@@ -49,23 +48,21 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
-        HotSearchesFetcher.getSingleInst().registerAdapterDataObserver(hotSearchesDataObserver);
+        HotSearchesFetcher.getSingleInst().registerFetcherDataObserver(hotSearchesDataObserver);
         HotSearchesFetcher.getSingleInst().requestFetchingData();
     }
 
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        HotSearchesFetcher.getSingleInst().unregisterAdapterDataObserver(hotSearchesDataObserver);
+        HotSearchesFetcher.getSingleInst().unregisterFetcherDataObserver(hotSearchesDataObserver);
     }
 
     @Override
     public int getItemViewType(int position) {
-        Log.d("HotSearchesAdapter", "getItemViewType > " + position);
         switch (HotSearchesFetcher.getSingleInst().getStatus()) {
-
-            case FETCHING_DATA_FAILED:
+            case FAILED:
                 return VIEW_TYPE_RETRY;
-            case FETCHING_DATA_SUCCEED:
+            case SUCCEED:
                 return VIEW_TYPE_NORMAL;
             default:
                 return VIEW_TYPE_LOADING;
@@ -77,7 +74,6 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v;
         RecyclerView.ViewHolder vh;
-        Log.d("HotSearchesAdapter", "onCreateViewHolder > " + viewType);
         switch (viewType) {
             case VIEW_TYPE_LOADING:
                 v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hotsearches_loading, parent, false);
@@ -92,7 +88,7 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 vh = new HotSearchHolder(v);
                 return vh;
             default:
-                Log.e("HotSearchesAdapter", "Not implemented yet", new Exception("To be implemented > " + viewType));
+                Log.e(TAG, "Can not create view holder for view type " + viewType);
                 return null;
         }
 
@@ -100,8 +96,6 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        Log.d("HotSearchesAdapter", "onBindViewHolder > " + position);
-
         if (holder instanceof HotSearchHolder) {
             ((HotSearchHolder) holder).bind(position);
         }
@@ -110,22 +104,28 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public int getItemCount() {
         switch (HotSearchesFetcher.getSingleInst().getStatus()) {
-            case FETCHING_DATA:
-            case FETCHING_DATA_FAILED:
+            case FETCHING:
+            case FAILED:
                 return 1;
-            case FETCHING_DATA_SUCCEED:
+            case SUCCEED:
                 return HotSearchesFetcher.getSingleInst().getItemCount();
             default:
-                throw new RuntimeException("To be implemented > " + HotSearchesFetcher.getSingleInst().getStatus());
+                return 0;
         }
     }
 
+    /**
+     *
+     */
     public static class LoadingHolder extends RecyclerView.ViewHolder {
         public LoadingHolder(View v) {
             super(v);
         }
     }
 
+    /**
+     *
+     */
     public static class RetryHolder extends RecyclerView.ViewHolder {
         public RetryHolder(View v) {
             super(v);

@@ -5,9 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -24,8 +22,7 @@ import okhttp3.Response;
 public class HotSearchesFetcher {
     private static final String TAG = "HotSearchesFetcher";
     private static final String HOT_SEARCHES_DATA_URL = "https://raw.githubusercontent.com/tikivn/android-home-test/v2/keywords.json";
-    private static HotSearchesFetcher singleInst = new HotSearchesFetcher();
-
+    private static HotSearchesFetcher singleInst;
 
     public synchronized static HotSearchesFetcher getSingleInst() {
         if (singleInst == null)
@@ -34,121 +31,131 @@ public class HotSearchesFetcher {
     }
 
 
-    private STATUS mStatus = STATUS.UNKNOWN;
-    private final HotSearchesDataObservable mObservable = new HotSearchesDataObservable();
-    private OkHttpClient mClient = new OkHttpClient();
-    private ArrayList<String> mDataSet = new ArrayList<>();
+    private FETCHING_STATUS fetchingStatus = FETCHING_STATUS.UNKNOWN;
+    private final FetchingDataObservable fetchingDataObservable = new FetchingDataObservable();
+    private OkHttpClient clientFetchData = new OkHttpClient();
+    private ArrayList<String> dataSet = new ArrayList<>();
 
     private HotSearchesFetcher() {
     }
 
-    public void registerAdapterDataObserver(@NonNull HotSearchesDataObserver observer) {
-        mObservable.registerObserver(observer);
+    public void registerFetcherDataObserver(@NonNull FetchingDataObserver observer) {
+        fetchingDataObservable.registerObserver(observer);
     }
 
-    public void unregisterAdapterDataObserver(@NonNull HotSearchesDataObserver observer) {
-        mObservable.unregisterObserver(observer);
+    public void unregisterFetcherDataObserver(@NonNull FetchingDataObserver observer) {
+        fetchingDataObservable.unregisterObserver(observer);
     }
 
-    public STATUS getStatus() {
-        return mStatus;
+    public FETCHING_STATUS getStatus() {
+        return fetchingStatus;
     }
 
-    private void setStatus(STATUS status) {
-        mStatus = status;
-        mObservable.notifyFetchStatusChanged(mStatus);
+    private void setStatus(FETCHING_STATUS status) {
+        fetchingStatus = status;
+        fetchingDataObservable.notifyStatusChanged(fetchingStatus);
     }
 
     public int getItemCount() {
-        return mDataSet.size();
+        return dataSet.size();
     }
 
     public String getItem(int position) {
-        return position >= 0 && position <= mDataSet.size() - 1 ? mDataSet.get(position) : null;
-    }
-
-    public enum STATUS {
-        UNKNOWN,
-        FETCHING_DATA,
-        FETCHING_DATA_FAILED,
-        FETCHING_DATA_SUCCEED
-    }
-
-    private static class HotSearchesDataObservable extends Observable<HotSearchesDataObserver> {
-        public void notifyFetchStatusChanged(STATUS status) {
-            for (int i = mObservers.size() - 1; i >= 0; i--) {
-                mObservers.get(i).onFetchStatusChanged(status);
-            }
-        }
-    }
-
-    public abstract static class HotSearchesDataObserver {
-
-        public void onFetchStatusChanged(STATUS status) {
-            // do nothing
-        }
-
+        return position >= 0 && position <= dataSet.size() - 1 ? dataSet.get(position) : null;
     }
 
 
     /**
-     * TODO add document
+     *
      */
     public void requestFetchingData() {
 
-        switch (mStatus) {
-            case FETCHING_DATA:
+
+        switch (fetchingStatus) {
+
+            case FETCHING:
+                Log.d(TAG, "data is being fetched.");
                 return;
+
+            case SUCCEED:
+                Log.d(TAG, "Data has been fetched.");
+                fetchingDataObservable.notifyStatusChanged(FETCHING_STATUS.SUCCEED);
+                return;
+
             case UNKNOWN:
-            case FETCHING_DATA_FAILED:
+            case FAILED:
+            default:
+                Log.d(TAG, "Data not yet fetched.");
                 doFetchingData();
                 return;
-            case FETCHING_DATA_SUCCEED:
-                mObservable.notifyFetchStatusChanged(STATUS.FETCHING_DATA_SUCCEED);
-                return;
-            default:
-                throw new RuntimeException("To be implemented > " + HotSearchesFetcher.getSingleInst().getStatus());
         }
-
-
     }
 
     private void doFetchingData() {
-        setStatus(STATUS.FETCHING_DATA);
+
+        if (fetchingStatus == FETCHING_STATUS.FETCHING) {
+            throw new RuntimeException("data is being fetched.");
+        }
+
+
+        setStatus(FETCHING_STATUS.FETCHING);
+
         Request request = new Request.Builder()
                 .url(HOT_SEARCHES_DATA_URL)
                 .get()
                 .build();
-        mClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.w(TAG, e);
-                setStatus(STATUS.FETCHING_DATA_FAILED);
-            }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-
-
-                try {
-                    String raw = response.body().string();
-                    JSONArray jsonArray = new JSONArray(raw);
-                    ArrayList<String> temp = new ArrayList<>();
-                    for (int i = 0, len = jsonArray.length(); i < len; i++) {
-                        temp.add(jsonArray.getString(i));
+        clientFetchData.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.w(TAG, e);
+                        setStatus(FETCHING_STATUS.FAILED);
                     }
-                    mDataSet = temp;
-                    setStatus(STATUS.FETCHING_DATA_SUCCEED);
-                } catch (Exception e) {
-                    onFailure(call, new IOException(new Exception(response.toString())));
-                } finally {
-                    if (response.body() != null) {
-                        response.body().close();
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        try {
+                            String raw = response.body().string();
+                            JSONArray jsonArray = new JSONArray(raw);
+                            ArrayList<String> temp = new ArrayList<>();
+                            for (int i = 0, len = jsonArray.length(); i < len; i++) {
+                                temp.add(jsonArray.getString(i));
+                            }
+                            dataSet = temp;
+                            setStatus(FETCHING_STATUS.SUCCEED);
+                        } catch (Exception e) {
+                            onFailure(call, new IOException(new Exception(response.toString())));
+                        } finally {
+                            if (response.body() != null) {
+                                response.body().close();
+                            }
+                        }
                     }
-                }
+                });
+    }
 
 
+    public enum FETCHING_STATUS {
+        UNKNOWN,
+        FETCHING,
+        FAILED,
+        SUCCEED
+    }
+
+    private static class FetchingDataObservable extends Observable<FetchingDataObserver> {
+        public void notifyStatusChanged(FETCHING_STATUS status) {
+            for (int i = mObservers.size() - 1; i >= 0; i--) {
+                mObservers.get(i).onStatusChanged(status);
             }
-        });
+        }
+    }
+
+    public abstract static class FetchingDataObserver {
+
+        public void onStatusChanged(FETCHING_STATUS status) {
+            // do nothing
+        }
+
     }
 }
