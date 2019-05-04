@@ -234,8 +234,15 @@
 
         </RelativeLayout>
 
+        <include
+            layout="@layout/layout_hotsearches"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/fake_item_space"
+            android:background="#ffffff" />
+
         <RelativeLayout
-            android:id="@+id/fake__item"
+            android:id="@+id/fake_login_item"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/fake_item_space"
@@ -248,8 +255,8 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_centerInParent="true"
-                android:layout_toLeftOf="@id/fake_login_img"
-                android:layout_toStartOf="@id/fake_login_img"
+                android:layout_toLeftOf="@id/retry"
+                android:layout_toStartOf="@id/retry"
                 android:orientation="vertical">
 
                 <android.support.v7.widget.AppCompatTextView
@@ -283,7 +290,7 @@
             </LinearLayout>
 
             <android.support.v7.widget.AppCompatImageView
-                android:id="@+id/fake_login_img"
+                android:id="@+id/retry"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
 
@@ -295,7 +302,7 @@
         </RelativeLayout>
 
         <LinearLayout
-            android:id="@+id/fake_"
+            android:id="@+id/fake_deal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/fake_item_space"

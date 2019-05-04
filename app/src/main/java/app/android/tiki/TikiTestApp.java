@@ -11,7 +11,6 @@ public class TikiTestApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        // Required initialization logic here!
     }
 
 

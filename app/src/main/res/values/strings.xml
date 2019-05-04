@@ -14,4 +14,8 @@
     <string name="sign_in">đăng nhập</string>
     <string name="sign_up">đăng ký</string>
     <string name="fake_deal_title">Tiki deal</string>
+    <string name="hot_searches">Từ khoá hot</string>
+    <string name="retry">Thử lại</string>
+    <string name="request_check_network">Vui lòng kiểm tra mạng và thử lại.</string>
+    <string name="loading_data_failed">Không thể tải dữ liệu.</string>
 </resources>
