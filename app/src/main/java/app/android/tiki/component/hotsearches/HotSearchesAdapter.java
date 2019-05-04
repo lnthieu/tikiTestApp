@@ -3,7 +3,6 @@ package app.android.tiki.component.hotsearches;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import app.android.tiki.R;
+import app.android.tiki.component.base.TwoLinesTextView;
 import app.android.tiki.database.HotSearchesFetcher;
 
 /**
@@ -143,65 +143,24 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
      */
     public static class HotSearchHolder extends RecyclerView.ViewHolder {
         private View view;
-        private AppCompatTextView appCompatTextView;
+        private TwoLinesTextView twoLineTextView;
 
         public HotSearchHolder(View v) {
             super(v);
             view = v;
-            appCompatTextView = view.findViewById(R.id.key_words);
+            twoLineTextView = view.findViewById(R.id.key_words);
 
         }
 
         public void bind(int position) {
             String keywords = HotSearchesFetcher.getSingleInst().getItem(position);
 
-            appCompatTextView.setText(formatKeyWords(keywords));
+            twoLineTextView.setTextAutoWrap(keywords);
+
             view.setVisibility(keywords == null ? View.GONE : View.VISIBLE);
         }
 
 
-        private int findPosNearCenter(int left, int center, int right) {
-
-            if (0 <= left
-                    && left <= center
-                    && center <= right) {
-                int l2c = center - left;
-                int c2r = right - center;
-                return l2c < c2r ? left : right;
-            } else {
-                throw new RuntimeException("invalid params");
-            }
-        }
-
-        private String formatKeyWords(final String keywords) {
-            final Character SPACE = ' ';
-            final Character NEW_LINE = '\n';
-            String result = keywords;
-            if (keywords != null && keywords.indexOf(SPACE) > 0) {
-                int wrapPos = -1;
-                int centerPos = keywords.length() / 2;
-                int firstSpaceFromCenter = keywords.substring(0, centerPos).lastIndexOf(SPACE);
-                int lastSpaceToCenter = keywords.indexOf(SPACE, centerPos);
-
-                if (keywords.charAt(centerPos) == SPACE) {
-                    wrapPos = centerPos;
-                } else if (firstSpaceFromCenter > 0 && lastSpaceToCenter > 0) {
-                    wrapPos = findPosNearCenter(firstSpaceFromCenter, centerPos, lastSpaceToCenter);
-                } else if (firstSpaceFromCenter < 0) {
-                    wrapPos = lastSpaceToCenter;
-                } else if (lastSpaceToCenter < 0) {
-                    wrapPos = firstSpaceFromCenter;
-                }
-
-                if (wrapPos > 0) {
-                    result = keywords.substring(0, wrapPos)
-                            + NEW_LINE
-                            + keywords.substring(wrapPos + 1);
-
-                }
-            }
-            return result;
-        }
     }
 
 }
