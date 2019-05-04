@@ -3,6 +3,7 @@ package app.android.tiki.component.hotsearches;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -61,14 +62,13 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public int getItemViewType(int position) {
         Log.d("HotSearchesAdapter", "getItemViewType > " + position);
         switch (HotSearchesFetcher.getSingleInst().getStatus()) {
-            case FETCHING_DATA:
-                return VIEW_TYPE_LOADING;
+
             case FETCHING_DATA_FAILED:
                 return VIEW_TYPE_RETRY;
             case FETCHING_DATA_SUCCEED:
                 return VIEW_TYPE_NORMAL;
             default:
-                throw new RuntimeException("To be implemented > " + HotSearchesFetcher.getSingleInst().getStatus());
+                return VIEW_TYPE_LOADING;
         }
     }
 
@@ -88,7 +88,9 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 vh = new RetryHolder(v);
                 return vh;
             case VIEW_TYPE_NORMAL:
-                //return HotSearchesFetcher.getSingleInst().getItemCount();
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hotsearches, parent, false);
+                vh = new HotSearchHolder(v);
+                return vh;
             default:
                 Log.e("HotSearchesAdapter", "Not implemented yet", new Exception("To be implemented > " + viewType));
                 return null;
@@ -99,6 +101,10 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Log.d("HotSearchesAdapter", "onBindViewHolder > " + position);
+
+        if (holder instanceof HotSearchHolder) {
+            ((HotSearchHolder) holder).bind(position);
+        }
     }
 
     @Override
@@ -136,8 +142,20 @@ public class HotSearchesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
      *
      */
     public static class HotSearchHolder extends RecyclerView.ViewHolder {
+        private View view;
+        private AppCompatTextView appCompatTextView;
+
         public HotSearchHolder(View v) {
             super(v);
+            view = v;
+            appCompatTextView = view.findViewById(R.id.key_words);
+
+        }
+
+        public void bind(int position) {
+            String keywords = HotSearchesFetcher.getSingleInst().getItem(position);
+            appCompatTextView.setText(keywords);
+            view.setVisibility(keywords == null ? View.GONE : View.VISIBLE);
         }
     }
 
