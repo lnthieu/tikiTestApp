@@ -33,7 +33,9 @@ public class TwoLinesTextView extends AppCompatTextView {
         CharSequence text = a.getText(0);
         a.recycle();
 
-        setTextAutoWrap(text.toString());
+        if (text != null) {
+            setTextAutoWrap(text.toString());
+        }
     }
 
 
@@ -58,7 +60,7 @@ public class TwoLinesTextView extends AppCompatTextView {
         final Character SPACE = ' ';
         final Character NEW_LINE = '\n';
         String result = text;
-        if (text != null && text.indexOf(SPACE) > 0) {
+        if (text != null && text.indexOf(SPACE) >= 0) {
             int wrapPos = -1;
             int centerPos = text.length() / 2;
             int firstSpaceFromCenter = text.substring(0, centerPos).lastIndexOf(SPACE);
@@ -74,7 +76,7 @@ public class TwoLinesTextView extends AppCompatTextView {
                 wrapPos = firstSpaceFromCenter;
             }
 
-            if (wrapPos > 0) {
+            if (wrapPos >= 0) {
                 result = text.substring(0, wrapPos)
                         + NEW_LINE
                         + text.substring(wrapPos + 1);
